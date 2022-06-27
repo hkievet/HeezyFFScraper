@@ -14,7 +14,6 @@ async function execScript(tab) {
       },
       files: ["content-script.js"],
     });
-    console.log(results[0].result)
   } catch (err) {
     console.error(`failed to execute script: ${err}`);
   }

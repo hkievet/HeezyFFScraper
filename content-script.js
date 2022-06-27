@@ -1,11 +1,21 @@
-let imgs = document.getElementsByTagName("img")
-let imgsAry = [...imgs]
 
+function getVideos() {
+    let videos = document.getElementsByTagName("video")
+    let videosAry = [...videos]
+    let videosArray = videosAry.map(img => {
+        return img.src
+    });
+    return videosArray
+}
 
-let src = imgsAry.map(img => {
-    return img.src
-});
-src;
+function getImages() {
+    let imgs = document.getElementsByTagName("img")
+    let imgsAry = [...imgs]
+    let imageArray = imgsAry.map(img => {
+        return img.src
+    });
+    return imageArray
+}
 
 
 function handleResponse(message) {
@@ -16,11 +26,12 @@ function handleError(error) {
     console.log(`Error: ${error}`);
 }
 
-function notifyBackgroundPage(e) {
+function notifyBackgroundPage(images, videos) {
     let sending = browser.runtime.sendMessage({
-        greeting: e
+        images,
+        videos
     });
     sending.then(handleResponse, handleError);
 }
 
-notifyBackgroundPage(src)
+notifyBackgroundPage(getImages(), getVideos())
