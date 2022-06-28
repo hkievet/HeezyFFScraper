@@ -1,11 +1,11 @@
 {
-  "name": "Fresh Chrome Extension",
-  "description": "Fully functional, useful bare minimum Google Chrome extension boilerplate [Manifest V3].",
-  "homepage_url": "https://github.com/llagerlof/fresh-chrome-extension",
-  "version": "2.0.0",
+  "name": "Heezy FF Scraper",
+  "description": "Used for scraping videos (via ffmpeg command) and photos from a twitter page.",
+  "homepage_url": "https://github.com/hkievet/HeezyFFScraper",
+  "version": "1.0.0",
   "manifest_version": 3,
   "action": {
-    "default_title": "execute.js will run (watch the Chrome DevTools' console)"
+    "default_title": "scroll through a twitter page gathering video and photo links"
   },
   "background": {
     "scripts": [
@@ -19,7 +19,7 @@
     "clipboardWrite"
   ],
   "host_permissions": [
-    "*://*/*"
+    "<all_urls>"
   ],
   "sidebar_action": {
     "default_title": "Scraper",
