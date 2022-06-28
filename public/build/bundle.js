@@ -297,19 +297,23 @@ var app = (function () {
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[11] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[8] = list[i];
+    	child_ctx[9] = list[i];
     	return child_ctx;
     }
 
-    // (56:28) 
+    // (61:28) 
     function create_if_block_1(ctx) {
+    	let button;
+    	let t1;
     	let each_1_anchor;
+    	let mounted;
+    	let dispose;
     	let each_value_1 = /*videos*/ ctx[2];
     	let each_blocks = [];
 
@@ -319,6 +323,10 @@ var app = (function () {
 
     	return {
     		c() {
+    			button = element("button");
+    			button.textContent = "copy Text";
+    			t1 = space();
+
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
@@ -326,11 +334,19 @@ var app = (function () {
     			each_1_anchor = empty();
     		},
     		m(target, anchor) {
+    			insert(target, button, anchor);
+    			insert(target, t1, anchor);
+
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(target, anchor);
     			}
 
     			insert(target, each_1_anchor, anchor);
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", /*copyText*/ ctx[5]);
+    				mounted = true;
+    			}
     		},
     		p(ctx, dirty) {
     			if (dirty & /*videos*/ 4) {
@@ -357,13 +373,17 @@ var app = (function () {
     			}
     		},
     		d(detaching) {
+    			if (detaching) detach(button);
+    			if (detaching) detach(t1);
     			destroy_each(each_blocks, detaching);
     			if (detaching) detach(each_1_anchor);
+    			mounted = false;
+    			dispose();
     		}
     	};
     }
 
-    // (51:0) {#if mode === "pictures"}
+    // (56:0) {#if mode === "pictures"}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let each_value = /*imgs*/ ctx[1];
@@ -419,52 +439,13 @@ var app = (function () {
     	};
     }
 
-    // (57:4) {#each videos as video}
+    // (63:4) {#each videos as video}
     function create_each_block_1(ctx) {
-    	let video;
-    	let video_src_value;
-    	let t0;
-    	let p;
-    	let t1_value = /*video*/ ctx[11] + "";
-    	let t1;
-
-    	return {
-    		c() {
-    			video = element("video");
-    			t0 = space();
-    			p = element("p");
-    			t1 = text(t1_value);
-    			if (!src_url_equal(video.src, video_src_value = /*video*/ ctx[11])) attr(video, "src", video_src_value);
-    			attr(video, "alt", "scraped");
-    		},
-    		m(target, anchor) {
-    			insert(target, video, anchor);
-    			insert(target, t0, anchor);
-    			insert(target, p, anchor);
-    			append(p, t1);
-    		},
-    		p(ctx, dirty) {
-    			if (dirty & /*videos*/ 4 && !src_url_equal(video.src, video_src_value = /*video*/ ctx[11])) {
-    				attr(video, "src", video_src_value);
-    			}
-
-    			if (dirty & /*videos*/ 4 && t1_value !== (t1_value = /*video*/ ctx[11] + "")) set_data(t1, t1_value);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(video);
-    			if (detaching) detach(t0);
-    			if (detaching) detach(p);
-    		}
-    	};
-    }
-
-    // (52:4) {#each imgs as img}
-    function create_each_block(ctx) {
     	let img;
     	let img_src_value;
     	let t0;
     	let p;
-    	let t1_value = /*img*/ ctx[8] + "";
+    	let t1_value = /*video*/ ctx[12] + "";
     	let t1;
 
     	return {
@@ -473,7 +454,7 @@ var app = (function () {
     			t0 = space();
     			p = element("p");
     			t1 = text(t1_value);
-    			if (!src_url_equal(img.src, img_src_value = /*img*/ ctx[8])) attr(img, "src", img_src_value);
+    			if (!src_url_equal(img.src, img_src_value = /*video*/ ctx[12])) attr(img, "src", img_src_value);
     			attr(img, "alt", "scraped");
     		},
     		m(target, anchor) {
@@ -483,11 +464,50 @@ var app = (function () {
     			append(p, t1);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*imgs*/ 2 && !src_url_equal(img.src, img_src_value = /*img*/ ctx[8])) {
+    			if (dirty & /*videos*/ 4 && !src_url_equal(img.src, img_src_value = /*video*/ ctx[12])) {
     				attr(img, "src", img_src_value);
     			}
 
-    			if (dirty & /*imgs*/ 2 && t1_value !== (t1_value = /*img*/ ctx[8] + "")) set_data(t1, t1_value);
+    			if (dirty & /*videos*/ 4 && t1_value !== (t1_value = /*video*/ ctx[12] + "")) set_data(t1, t1_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(img);
+    			if (detaching) detach(t0);
+    			if (detaching) detach(p);
+    		}
+    	};
+    }
+
+    // (57:4) {#each imgs as img}
+    function create_each_block(ctx) {
+    	let img;
+    	let img_src_value;
+    	let t0;
+    	let p;
+    	let t1_value = /*img*/ ctx[9] + "";
+    	let t1;
+
+    	return {
+    		c() {
+    			img = element("img");
+    			t0 = space();
+    			p = element("p");
+    			t1 = text(t1_value);
+    			if (!src_url_equal(img.src, img_src_value = /*img*/ ctx[9])) attr(img, "src", img_src_value);
+    			attr(img, "alt", "scraped");
+    		},
+    		m(target, anchor) {
+    			insert(target, img, anchor);
+    			insert(target, t0, anchor);
+    			insert(target, p, anchor);
+    			append(p, t1);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*imgs*/ 2 && !src_url_equal(img.src, img_src_value = /*img*/ ctx[9])) {
+    				attr(img, "src", img_src_value);
+    			}
+
+    			if (dirty & /*imgs*/ 2 && t1_value !== (t1_value = /*img*/ ctx[9] + "")) set_data(t1, t1_value);
     		},
     		d(detaching) {
     			if (detaching) detach(img);
@@ -634,7 +654,13 @@ var app = (function () {
     	}
 
     	browser.runtime.onMessage.addListener(handleMessage);
-    	return [mode, imgs, videos, setPictureMode, setVideoMode];
+
+    	function copyText() {
+    		const text = `youtube-dl -o '%(id)s.%(ext)s' ${videos.join(" ")}`;
+    		navigator.clipboard.writeText(text);
+    	}
+
+    	return [mode, imgs, videos, setPictureMode, setVideoMode, copyText];
     }
 
     class App extends SvelteComponent {

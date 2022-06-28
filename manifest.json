@@ -15,7 +15,8 @@
   "permissions": [
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "clipboardWrite"
   ],
   "host_permissions": [
     "*://*/*"

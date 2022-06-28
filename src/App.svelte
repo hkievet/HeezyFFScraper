@@ -38,6 +38,11 @@
         });
     }
     browser.runtime.onMessage.addListener(handleMessage);
+
+    function copyText() {
+        const text = `youtube-dl -o '%(id)s.%(ext)s' ${videos.join(" ")}`;
+        navigator.clipboard.writeText(text);
+    }
 </script>
 
 <svelte:window on:scraper_images_scraped={printMessage} />
@@ -54,8 +59,9 @@
         <p>{img}</p>
     {/each}
 {:else if mode === "videos"}
+    <button on:click={copyText}>copy Text</button>
     {#each videos as video}
-        <video src={video} alt="scraped" />
+        <img src={video} alt="scraped" />
         <p>{video}</p>
     {/each}
 {/if}
