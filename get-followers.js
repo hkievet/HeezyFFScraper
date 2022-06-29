@@ -1,4 +1,12 @@
 // get the first a tag inside each div data-testid="cellInnerDiv" and get both the href and text of the first a tag, maybe the description?
+const config = {
+    followers: {
+        numScrolls: 200,
+        scrollDelay: 200,
+        maxFails: 3,
+        maxFollowers: 300,
+    }
+}
 
 let allFollowers = []
 
@@ -43,6 +51,9 @@ function updateFollowers() {
     allFollowers.push(...followers)
     // make allFollowers unique
     allFollowers = [...new Set(allFollowers)]
+    if (allFollowers.length > config.followers.maxFollowers) {
+        allFollowers = allFollowers.slice(0, config.followers.maxFollowers)
+    }
     if (allFollowers.length === prevFollowers) {
         console.log(allFollowers.length)
         return false

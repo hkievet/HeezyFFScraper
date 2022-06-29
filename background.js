@@ -1,6 +1,7 @@
 // event to run execute.js content when extension's button is clicked
 let followerUrls = []
-let videos = []
+let videoCatalog = {}
+let currentUrl = ""
 browser.action.onClicked.addListener(execScript);
 
 function appConsole(message) {
@@ -9,7 +10,6 @@ function appConsole(message) {
 
 async function execScript(tab) {
   try {
-    console.log(tab.id)
     window.tab = tab.id
     await browser.scripting.executeScript({
       target: {
@@ -38,9 +38,7 @@ browser.contextMenus.create({
 
 function onCreated() {
   if (browser.runtime.lastError) {
-    console.log("error creating item:" + browser.runtime.lastError);
   } else {
-    console.log("item created successfully");
   }
 }
 
@@ -68,37 +66,60 @@ function navigate(tab, url) {
   })
 }
 
+function makeFfmpegCommand() {
+  let ffmpegCmd = Object.keys(videoCatalog).map(url => {
+    const videos = videoCatalog[url].videos
+    if (videos.length) {
+      // remove leading https://twitter.com/ from url
+      url = url.replace('https://twitter.com/', '')
+      return `mkdir ${url} && cd ${url} && youtube-dl -o '%(id)s.%(ext)s' ${videos.join(' ')} && cd ..`
+    } else {
+      return ''
+    }
+  }).filter(x => x !== '').join('\\\n&& ')
+  appConsole(ffmpegCmd)
+  return ffmpegCmd
+}
+
 function handleMessage(request, sender, sendResponse) {
   const tab = sender.tab
   switch (request.type) {
     case "autoScraper":
-      appConsole("autoscraper found...")
+      appConsole("Finished scanning " + currentUrl)
       setTimeout(() => {
         callScript(tab, "content-script.js")
       }, 1000)
       break
     case "twitterPageScraper":
-      // request.videos will be videos
-      // appConsole('youtube-dl ' + request.videos.join(' '))
+      appConsole("finished scraping...")
+      videoCatalog[currentUrl] = { images: [], videos: [] }
       if (request.videos) {
         appConsole("Videos found : " + request.videos.length)
-        videos.push(...request.videos)
-        appConsole('youtube-dl ' + videos.join(' '))
+        videoCatalog[currentUrl].videos = [...request.videos]
       }
+      if (request.images) {
+        appConsole("Photos found : " + request.images.length)
+        videoCatalog[currentUrl].images = [...request.images]
+      }
+      const ffmpegCommand = makeFfmpegCommand()
+      navigator.clipboard.writeText(JSON.stringify({ ...videoCatalog, ffmpegCommand }, null, 2));
+      // move on to next thing...
       if (followerUrls.length) {
-        const newUrl = followerUrls.pop()
-        appConsole("navigating to next url" + newUrl)
-        navigate(tab, newUrl)
+        currentUrl = followerUrls.pop()
+        appConsole("navigating to next url" + currentUrl + ".  " + followerUrls.length + " remaining")
+        navigate(tab, currentUrl)
       }
       else {
-        appConsole("no more urls")
-        appConsole(`youtube-dl -o '%(id)s.%(ext)s'` + videos.join(' '))
+        appConsole("Finshed scannign URLS")
       }
       break
     case "followersScraped":
       if (request.followers) {
         appConsole("Followers found : " + request.followers.length)
-        followerUrls.push(...request.followers)
+        // get first 50 request.followers
+        const followers = [...request.followers].slice(0, 50)
+        followerUrls = [...followers]
+        appConsole(followerUrls.length)
       }
       break
   }
@@ -112,6 +133,7 @@ browser.contextMenus.onClicked.addListener(async function (info, tab) {
       callScript(tab, "get-followers.js")
       break;
     case "navigate":
+      currentUrl = followerUrls.pop()
       // starts navigating....
       // await callScript(tab, "autoScraper.js")
       await browser.scripting.executeScript({
@@ -123,7 +145,7 @@ browser.contextMenus.onClicked.addListener(async function (info, tab) {
           window.location.href = text;
           browser.runtime.sendMessage({ type: "autoScraper", finished: true })
         },
-        args: [followerUrls.pop()]
+        args: [currentUrl]
       });
       setTimeout(() => {
         callScript(tab, "content-script.js")

@@ -1,3 +1,11 @@
+const config = {
+    posts: {
+        numScrolls: 20,
+        scrollDelay: 400,
+        maxFails: 3,
+    }
+}
+
 function scroll() {
     window.scrollByPages(2)
 }
@@ -7,14 +15,14 @@ function scrollRepeatedly(numTimesRemaining, numTimesWithoutChange) {
     numTimesWithoutChange + 1
     scroll()
     setTimeout(() => {
-        if (numTimesWithoutChange > 3) {
+        if (numTimesWithoutChange > config.posts.maxFails) {
             notifyBackgroundPage(images, videos)
         } else if (numTimesRemaining !== 0) {
             scrollRepeatedly(numTimesRemaining - 1, hasChange ? 0 : numTimesWithoutChange + 1);
         } else {
             notifyBackgroundPage(images, videos)
         }
-    }, 500)
+    }, config.posts.scrollDelay)
 }
 
 // returns the twitter url for the exact video...
@@ -78,4 +86,4 @@ function notifyBackgroundPage(images, videos) {
     sending.then(handleResponse, handleError);
 }
 
-scrollRepeatedly(20, 0)
+scrollRepeatedly(config.posts.numScrolls, 0)
