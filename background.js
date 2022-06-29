@@ -1,5 +1,5 @@
 // event to run execute.js content when extension's button is clicked
-let urls = []
+let followerUrls = []
 let videos = []
 browser.action.onClicked.addListener(execScript);
 
@@ -70,28 +70,37 @@ function navigate(tab, url) {
 
 function handleMessage(request, sender, sendResponse) {
   const tab = sender.tab
-  if (request.type === "autoScraper") {
-    appConsole("autoscraper found...")
-    setTimeout(() => {
-      callScript(tab, "content-script.js")
-    }, 3000)
-  }
-  if (request.type === "twitterPageScraper") {
-    // request.videos will be videos
-    // appConsole('youtube-dl ' + request.videos.join(' '))
-    if (request.videos) {
-      appConsole("Videos found : " + request.videos.length)
-      videos.push(...request.videos)
-    }
-    if (urls.length) {
-      const newUrl = urls.pop()
-      appConsole("navigating to next url" + newUrl)
-      navigate(tab, newUrl)
-    }
-    else {
-      appConsole("no more urls")
-      appConsole('youtube-dl ' + videos.join(' '))
-    }
+  switch (request.type) {
+    case "autoScraper":
+      appConsole("autoscraper found...")
+      setTimeout(() => {
+        callScript(tab, "content-script.js")
+      }, 1000)
+      break
+    case "twitterPageScraper":
+      // request.videos will be videos
+      // appConsole('youtube-dl ' + request.videos.join(' '))
+      if (request.videos) {
+        appConsole("Videos found : " + request.videos.length)
+        videos.push(...request.videos)
+        appConsole('youtube-dl ' + videos.join(' '))
+      }
+      if (followerUrls.length) {
+        const newUrl = followerUrls.pop()
+        appConsole("navigating to next url" + newUrl)
+        navigate(tab, newUrl)
+      }
+      else {
+        appConsole("no more urls")
+        appConsole(`youtube-dl -o '%(id)s.%(ext)s'` + videos.join(' '))
+      }
+      break
+    case "followersScraped":
+      if (request.followers) {
+        appConsole("Followers found : " + request.followers.length)
+        followerUrls.push(...request.followers)
+      }
+      break
   }
 }
 
@@ -100,11 +109,7 @@ browser.runtime.onMessage.addListener(handleMessage);
 browser.contextMenus.onClicked.addListener(async function (info, tab) {
   switch (info.menuItemId) {
     case "scrapeFollowers":
-      const results = await callScript(tab, "get-followers.js")
-      videos = []
-      urls = results[0].result.splice(0, 10)
-      console.log(urls)
-      appConsole("Found " + urls.length + " urls")
+      callScript(tab, "get-followers.js")
       break;
     case "navigate":
       // starts navigating....
@@ -118,7 +123,7 @@ browser.contextMenus.onClicked.addListener(async function (info, tab) {
           window.location.href = text;
           browser.runtime.sendMessage({ type: "autoScraper", finished: true })
         },
-        args: [urls.pop()]
+        args: [followerUrls.pop()]
       });
       setTimeout(() => {
         callScript(tab, "content-script.js")
