@@ -13,10 +13,12 @@
     ]
   },
   "permissions": [
+    "<all_urls>",
     "activeTab",
     "tabs",
     "scripting",
-    "clipboardWrite"
+    "clipboardWrite",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"

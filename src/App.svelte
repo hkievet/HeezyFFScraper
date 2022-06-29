@@ -1,4 +1,5 @@
 <script>
+    import Followers from "./Followers.svelte";
     // const modes = ["pictures", "videos"];
     let mode = "pictures";
     const ignoreURLS = [
@@ -15,6 +16,9 @@
     function setVideoMode() {
         mode = "videos";
     }
+    function setFollowersMode() {
+        mode = "followers";
+    }
 
     // import browser from "webextension-polyfill";
     let imgs = [];
@@ -23,9 +27,10 @@
         console.log(message);
     }
     function handleMessage(request, sender, sendResponse) {
-        imgs = filterImageUrls(request.images);
-        videos = request.videos;
-        // sendResponse({ response: "Response from background script" });
+        if (request.type === "twitterPageScraper") {
+            imgs = filterImageUrls(request.images);
+            videos = request.videos;
+        }
     }
 
     function filterImageUrls(urls) {
@@ -49,10 +54,8 @@
 <div>
     <button on:click={setPictureMode}>Picture</button>
     <button on:click={setVideoMode}>Video</button>
+    <button on:click={setFollowersMode}>Followers</button>
 </div>
-<p>
-    {mode}
-</p>
 {#if mode === "pictures"}
     {#each imgs as img}
         <img src={img} alt="scraped" />
@@ -64,4 +67,6 @@
         <img src={video} alt="scraped" />
         <p>{video}</p>
     {/each}
+{:else if mode === "followers"}
+    <Followers />
 {/if}

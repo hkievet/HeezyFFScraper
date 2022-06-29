@@ -60,7 +60,7 @@ function getImages() {
     return imageArray
 }
 
-
+// Handling messaging with the background script
 function handleResponse(message) {
     console.log(`Message from the background script:`);
 }
@@ -71,10 +71,11 @@ function handleError(error) {
 
 function notifyBackgroundPage(images, videos) {
     let sending = browser.runtime.sendMessage({
+        type:"twitterPageScraper",
         images,
         videos
     });
     sending.then(handleResponse, handleError);
 }
 
-scrollRepeatedly(100, 0)
+scrollRepeatedly(2, 0)
