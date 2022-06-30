@@ -1,7 +1,7 @@
 export function scrapeContent() {
     const config = {
         posts: {
-            numScrolls: 100,
+            numScrolls: 20,
             scrollDelay: 400,
             maxFails: 4,
         }

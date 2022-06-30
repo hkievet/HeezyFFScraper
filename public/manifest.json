@@ -17,10 +17,13 @@
     "tabs",
     "scripting",
     "clipboardWrite",
-    "contextMenus"
+    "contextMenus",
+    "permissions",
+    "<all_urls>"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "*://twitter.com/*",
+    "*://*/*"
   ],
   "sidebar_action": {
     "default_title": "Scraper",

@@ -5,7 +5,7 @@ function appConsole(message) {
 function scrapeContent() {
     const config = {
         posts: {
-            numScrolls: 100,
+            numScrolls: 20,
             scrollDelay: 400,
             maxFails: 4,
         }
@@ -161,6 +161,7 @@ function scrapeFollowers() {
 let followerUrls = [];
 let videoCatalog = {};
 let currentUrl = "";
+let processTabId = null;
 
 browser.action.onClicked.addListener(onButtonClick);
 browser.runtime.onMessage.addListener(handleMessage);
@@ -197,28 +198,35 @@ function onCreated() {
 }
 
 browser.contextMenus.onClicked.addListener(async function (info, tab) {
+  processTabId = tab.id;
   switch (info.menuItemId) {
     case "test":
-      appConsole("boom");
+      // appConsole("boom", tab)
+      browser.permissions.request({
+        origins: ["*://*/*"]
+      }).then((response) => {
+        appConsole(response);
+      });
       break;
     case "scrapeFollowers":
-      callScript(tab, scrapeFollowers);
+      callScript({ id: processTabId }, scrapeFollowers);
       break;
     case "navigate":
       currentUrl = await getNextUrl();
-      await browser.scripting.executeScript({
-        target: {
-          tabId: tab.id,
-          allFrames: true,
-        },
-        func: (text) => {
-          window.location.href = text;
-          browser.runtime.sendMessage({ type: "autoScraper", finished: true });
-        },
-        args: [currentUrl]
-      });
+      navigate({ id: processTabId }, currentUrl);
+      // await browser.scripting.executeScript({
+      //   target: {
+      //     tabId: tab.id,
+      //     allFrames: true,
+      //   },
+      //   func: (text) => {
+      //     window.location.href = text;
+      //     browser.runtime.sendMessage({ type: "autoScraper", finished: true })
+      //   },
+      //   args: [currentUrl]
+      // });
       setTimeout(() => {
-        callScript(tab, scrapeContent);
+        callScript({ id: processTabId }, scrapeContent);
       }, 3000);
       break;
   }
@@ -242,7 +250,7 @@ async function callScript(tab, f, args) {
 
 
 function navigate(tab, url) {
-  callScript(tab, (url) => {
+  callScript({ id: processTabId }, (url) => {
     window.location.href = url;
     browser.runtime.sendMessage({ type: "autoScraper", finished: true });
   }, [url]);
@@ -255,7 +263,7 @@ function handleMessage(request, sender, sendResponse) {
     case "autoScraper":
       appConsole("Navigated to... " + currentUrl);
       setTimeout(() => {
-        callScript(tab, scrapeContent);
+        callScript({ id: processTabId }, scrapeContent);
       }, 1000);
       break
     case "twitterPageScraper":
@@ -287,11 +295,8 @@ function handleMessage(request, sender, sendResponse) {
       break;
     case "followersScraped":
       if (request.followers) {
-        appConsole("Followers found : " + request.followers.length);
-        // get first 50 request.followers
-        // const followers = [...request.followers].slice(0, 50)
         followerUrls = [...request.followers];
-        appConsole(followerUrls.length);
+        appConsole("Followers found : " + followerUrls.length);
       }
       break
   }
