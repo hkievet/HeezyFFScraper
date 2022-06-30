@@ -9,7 +9,7 @@
   },
   "background": {
     "scripts": [
-      "public/build/background.js"
+      "build/background.js"
     ]
   },
   "permissions": [
@@ -24,7 +24,7 @@
   ],
   "sidebar_action": {
     "default_title": "Scraper",
-    "default_panel": "public/index.html",
+    "default_panel": "index.html",
     "default_icon": "sidebar_icon.png"
   }
 }
