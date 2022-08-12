@@ -1,14 +1,15 @@
 export function scrapeContent() {
     const config = {
         posts: {
-            numScrolls: 20,
+            numScrolls: 100,
             scrollDelay: 400,
             maxFails: 4,
         }
     }
 
     function scroll() {
-        window.scrollByPages(2)
+        // window.scrollByPages(2)
+        window.scrollBy(0, window.innerHeight)
     }
 
     function scrollRepeatedly(numTimesRemaining, numTimesWithoutChange) {
@@ -48,7 +49,7 @@ export function scrapeContent() {
     }
 
     function getVideos() {
-        let videos = document.getElementsByTagName("video")
+        let videos = document.querySelectorAll("[data-testid='placementTracking']")
         let videosAry = [...videos]
         let videosArray = videosAry.map(img => {
             try {

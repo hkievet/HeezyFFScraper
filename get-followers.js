@@ -12,7 +12,7 @@ export function scrapeFollowers() {
     let allFollowers = []
 
     function scroll() {
-        window.scrollByPages(2)
+        window.scrollBy(0, window.innerHeight)
     }
 
     function scrollRepeatedly(numTimesRemaining, numTimesWithoutChange) {
@@ -33,7 +33,7 @@ export function scrapeFollowers() {
                     followers: allFollowers
                 });
             }
-        }, 200)
+        }, config.followers.scrollDelay)
     }
 
 

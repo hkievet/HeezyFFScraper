@@ -8,9 +8,7 @@
     "default_title": "scroll through a twitter page gathering video and photo links"
   },
   "background": {
-    "scripts": [
-      "build/background.js"
-    ]
+    "scripts": ["build/background.js"]
   },
   "permissions": [
     "activeTab",
@@ -21,10 +19,7 @@
     "permissions",
     "<all_urls>"
   ],
-  "host_permissions": [
-    "*://twitter.com/*",
-    "*://*/*"
-  ],
+  "host_permissions": ["*://twitter.com/*", "*://*/*"],
   "sidebar_action": {
     "default_title": "Scraper",
     "default_panel": "index.html",

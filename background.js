@@ -12,6 +12,7 @@ browser.action.onClicked.addListener(onButtonClick);
 browser.runtime.onMessage.addListener(handleMessage);
 
 async function onButtonClick(tab) {
+  processTabId = tab.id
   await callScript(tab, scrapeContent)
 }
 
@@ -59,17 +60,6 @@ browser.contextMenus.onClicked.addListener(async function (info, tab) {
     case "navigate":
       currentUrl = await getNextUrl()
       navigate({ id: processTabId }, currentUrl)
-      // await browser.scripting.executeScript({
-      //   target: {
-      //     tabId: tab.id,
-      //     allFrames: true,
-      //   },
-      //   func: (text) => {
-      //     window.location.href = text;
-      //     browser.runtime.sendMessage({ type: "autoScraper", finished: true })
-      //   },
-      //   args: [currentUrl]
-      // });
       setTimeout(() => {
         callScript({ id: processTabId }, scrapeContent)
       }, 3000)
@@ -101,6 +91,34 @@ function navigate(tab, url) {
   }, [url])
 }
 
+function handleTwitterPageScraperFinished(tab, request) {
+  appConsole("finished scraping...")
+  videoCatalog[currentUrl] = { images: [], videos: [] }
+  if (request.videos) {
+    appConsole("Videos found : " + request.videos.length)
+    videoCatalog[currentUrl].videos = [...request.videos]
+  }
+  if (request.images) {
+    appConsole("Photos found : " + request.images.length)
+    videoCatalog[currentUrl].images = [...request.images]
+  }
+  submitPost(tab.url, videoCatalog[currentUrl].videos, videoCatalog[currentUrl].images).then(() => {
+    // const ffmpegCommand = makeFfmpegCommand()
+    // navigator.clipboard.writeText(JSON.stringify({ ...videoCatalog, ffmpegCommand }, null, 2));
+    // move on to next thing...
+    if (followerUrls.length) {
+      getNextUrl().then((url) => {
+        currentUrl = url
+        appConsole("navigating to next url" + currentUrl + ".  " + followerUrls.length + " remaining")
+        navigate(tab, currentUrl)
+      })
+    }
+    else {
+      appConsole("Finshed scanning URLS")
+    }
+  })
+}
+
 // Message handling...
 function handleMessage(request, sender, sendResponse) {
   const tab = sender.tab
@@ -108,35 +126,13 @@ function handleMessage(request, sender, sendResponse) {
     case "autoScraper":
       appConsole("Navigated to... " + currentUrl)
       setTimeout(() => {
-        callScript({ id: processTabId }, scrapeContent)
+        callScript({ id: processTabId }, scrapeContent).then(('finished scraping...')).catch(e => {
+          appConsole(e)
+        })
       }, 1000)
       break
     case "twitterPageScraper":
-      appConsole("finished scraping...")
-      videoCatalog[currentUrl] = { images: [], videos: [] }
-      if (request.videos) {
-        appConsole("Videos found : " + request.videos.length)
-        videoCatalog[currentUrl].videos = [...request.videos]
-      }
-      if (request.images) {
-        appConsole("Photos found : " + request.images.length)
-        videoCatalog[currentUrl].images = [...request.images]
-      }
-      submitPost(tab.url, videoCatalog[currentUrl].videos, videoCatalog[currentUrl].images).then(() => {
-        // const ffmpegCommand = makeFfmpegCommand()
-        // navigator.clipboard.writeText(JSON.stringify({ ...videoCatalog, ffmpegCommand }, null, 2));
-        // move on to next thing...
-        if (followerUrls.length) {
-          getNextUrl().then((url) => {
-            currentUrl = url
-            appConsole("navigating to next url" + currentUrl + ".  " + followerUrls.length + " remaining")
-            navigate(tab, currentUrl)
-          })
-        }
-        else {
-          appConsole("Finshed scanning URLS")
-        }
-      })
+      handleTwitterPageScraperFinished(tab, request)
       break;
     case "followersScraped":
       if (request.followers) {
@@ -156,7 +152,6 @@ async function submitPost(account, videos, photos) {
   appConsole("Submitting data for " + account)
   const url = "http://localhost:8080/submitScrapedData"
   const body = JSON.stringify({ account, videos, photos })
-  appConsole(body)
   const settings = {
     method: 'POST',
     headers: {
@@ -171,6 +166,7 @@ async function submitPost(account, videos, photos) {
     appConsole(data)
     return data;
   } catch (e) {
+    appConsole("issue submitting data..")
     return e;
   }
 }
@@ -197,7 +193,6 @@ async function checkUrl(account) {
     return false
   } catch (e) {
     return e;
-    return false
   }
 }
 
